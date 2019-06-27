@@ -9,4 +9,4 @@ The SIMH PDP-8 simulator and WinBoard communicate through a pair of virtual seri
 
 The VBScript "CHEMKO-II Chess using WinBoard.vbs" is used load and start the interface
 <p align="center">My "Blitz Mode" game against CHEKMO. I'm playing white.</p><br>
-<p align="center"><img src="/images/20190627_085017.gif"/>
+<p align="center"><img src="/images/20190627_115202.gif"/>
