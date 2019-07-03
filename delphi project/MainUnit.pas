@@ -14,7 +14,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, StrUtils,
-  Dialogs, OoMisc, ADTrmEmu, Menus, AdPort, AdXPort, AdSelCom, WBUnit, HH, INIFiles;
+  Dialogs, OoMisc, ADTrmEmu, Menus, AdPort, AdXPort, AdSelCom, WBUnit, HH, INIFiles, ShellApi;
 
 type
   TMainForm = class(TForm)
@@ -444,6 +444,8 @@ begin
       begin
          MessageDlg('Sorry, comm port '+IntToStr(ApdComPort1.ComNumber)+' is not available.',mtError, [mbOK], 0);
       end;
+
+    ShellExecute(Handle, 'open', PChar('chess.vbs'),nil,nil, SW_SHOW);
 end;
 
 //------------------------------------------------------------------------------//
@@ -460,6 +462,7 @@ end;
 //------------------------------------------------------------------------------//
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var IniFile: TiniFile;
+    MyHandle: THandle;
 begin
    IniFile := TIniFile.Create(IniFileName);
    try
