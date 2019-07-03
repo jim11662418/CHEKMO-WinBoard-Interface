@@ -63,6 +63,7 @@ var
   IniFileName,fromCHEKMO: string;
   CHEKMOcolor: PieceColors;
   WhoseTurn: Turns;
+  simhStarted: boolean;
 
 implementation
 
@@ -145,13 +146,25 @@ begin
 
    else if pos('new',fromWinBoard) > 0 then                         // Reset the board to the standard chess starting position. Set White on move. Leave force mode and set the engine to play Black.
       begin
-         MainForm.ApdComPort1.PutString('RE'^M);                    // send "REset" command over serial link to CHEKMO, end with <CR>
-         Delay(250);
-         MainForm.ApdComPort1.PutString('PB'^M);                    // send "Play Black" command over serial link to CHEKMO, end with <CR>
-         CKMonitorForm.meCKMonitor.Lines.Add('to   CKMO: '+'RE');
-         CKMonitorForm.meCKMonitor.Lines.Add('to   CKMO: '+'PB');
-         CHEKMOcolor := Undetermined;                               // we don't know what color CHEKMO will play next game
-         WhoseTurn := WhitesTurn;                                   // but white always moves first
+         if simhStarted then
+            begin
+               MainForm.ApdComPort1.PutString('RE'^M);                    // send "REset" command over serial link to CHEKMO, end with <CR>
+               Delay(250);
+               MainForm.ApdComPort1.PutString('PB'^M);                    // send "Play Black" command over serial link to CHEKMO, end with <CR>
+               CKMonitorForm.meCKMonitor.Lines.Add('to   CKMO: '+'RE');
+               CKMonitorForm.meCKMonitor.Lines.Add('to   CKMO: '+'PB');
+               CHEKMOcolor := Undetermined;                               // we don't know what color CHEKMO will play next game
+               WhoseTurn := WhitesTurn;                                   // but white always moves first
+            end
+         else
+            begin
+               MainForm.ApdComPort1.PutString('R CHESS'^M);               // send "Run CHESS" command
+               Delay(250);
+               MainForm.ApdComPort1.PutString('PB'^M);                    // send "Play Black" command
+               CKMonitorForm.meCKMonitor.Lines.Add('to   CKMO: '+'R CHESS');
+               CKMonitorForm.meCKMonitor.Lines.Add('to   CKMO: '+'PB');
+               simhStarted := true;
+            end;
       end
 
    else if pos('result',fromWinBoard) > 0 then                      // Winboard reports the result at the end of the game
@@ -277,11 +290,11 @@ begin
    if (LineToParse = 'RE?') then ResetRejected := true              // SIMH does not understand the "REset" command
    else if (LineToParse = 'PB?') and ResetRejected then             // SIMH does not understand th "Play Black" command, ergo CHEKMO hasn't been started yet
       begin
-         MainForm.ApdComPort1.PutString('R CHESS'^M);               // send "Run CHESS" command
-         Delay(250);
-         MainForm.ApdComPort1.PutString('PB'^M);                    // send "Play Black" command
-         CKMonitorForm.meCKMonitor.Lines.Add('to   CKMO: '+'R CHESS');
-         CKMonitorForm.meCKMonitor.Lines.Add('to   CKMO: '+'PB');
+         //MainForm.ApdComPort1.PutString('R CHESS'^M);               // send "Run CHESS" command
+         //Delay(250);
+         //MainForm.ApdComPort1.PutString('PB'^M);                    // send "Play Black" command
+         //CKMonitorForm.meCKMonitor.Lines.Add('to   CKMO: '+'R CHESS');
+         //CKMonitorForm.meCKMonitor.Lines.Add('to   CKMO: '+'PB');
          ResetRejected := false;
       end
 
@@ -434,6 +447,7 @@ begin
 
    //make the terminal active
    AdTerminal1.Active := true;
+   simhStarted := false;
 
    if IsPortAvailable(ApdComPort1.ComNumber) then
       begin
@@ -444,8 +458,6 @@ begin
       begin
          MessageDlg('Sorry, comm port '+IntToStr(ApdComPort1.ComNumber)+' is not available.',mtError, [mbOK], 0);
       end;
-
-    ShellExecute(Handle, 'open', PChar('chess.vbs'),nil,nil, SW_SHOW);
 end;
 
 //------------------------------------------------------------------------------//
@@ -462,7 +474,7 @@ end;
 //------------------------------------------------------------------------------//
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var IniFile: TiniFile;
-    MyHandle: THandle;
+
 begin
    IniFile := TIniFile.Create(IniFileName);
    try
